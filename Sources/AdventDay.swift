@@ -19,6 +19,13 @@ protocol AdventDay: Sendable {
 
   /// Computes and returns the answer for part two.
   func part2() async throws -> Answer
+
+  static var testData: String { get }
+  static var testData2: String { get }
+  static var expectedTestResult1:   String { get }
+  static var expectedProperResult1: String { get }
+  static var expectedTestResult2:   String { get }
+  static var expectedProperResult2: String { get }
 }
 
 struct PartUnimplemented: Error {
@@ -27,6 +34,10 @@ struct PartUnimplemented: Error {
 }
 
 extension AdventDay {
+  static var isDisabled: Bool { testData.isEmpty }
+  static var testData: String { "" }
+  static var testData2: String { testData }
+
   // Find the challenge day from the type name.
   static var day: Int {
     let typeName = String(reflecting: Self.self)
@@ -56,6 +67,15 @@ extension AdventDay {
   /// An initializer that loads the test data from the corresponding data file.
   init() {
     self.init(data: Self.loadData(challengeDay: Self.day))
+  }
+
+  static var hasData: Bool {
+    let dataURL = Bundle.module.url(
+      forResource: String(format: "Day%02d", Self.day),
+      withExtension: "txt",
+      subdirectory: "Data")
+
+    return dataURL != nil
   }
 
   static func loadData(challengeDay: Int) -> String {
