@@ -4,25 +4,27 @@ import Algorithms
 // https://adventofcode.com/2024/day/16
 struct Day16: AdventDay {
   static let testData = """
-    ###############
-    #.......#....E#
-    #.#.###.#.###.#
-    #.....#.#...#.#
-    #.###.#####.#.#
-    #.#.#.......#.#
-    #.#.#####.###.#
-    #...........#.#
-    ###.#.#####.#.#
-    #...#.....#.#.#
-    #.#.#.###.#.#.#
-    #.....#...#.#.#
-    #.###.#.#.#.#.#
-    #S..#.....#...#
-    ###############
+    #################
+    #...#...#...#..E#
+    #.#.#.#.#.#.#.#^#
+    #.#.#.#...#...#^#
+    #.#.#.#.###.#.#^#
+    #>>v#.#.#.....#^#
+    #^#v#.#.#.#####^#
+    #^#v..#.#.#>>>>^#
+    #^#v#####.#^###.#
+    #^#v#..>>>>^#...#
+    #^#v###^#####.###
+    #^#v#>>^#.....#.#
+    #^#v#^#####.###.#
+    #^#v#^........#.#
+    #^#v#^#########.#
+    #S#>>^..........#
+    #################
     """
 
-  static var expectedTestResult1:   String { "7036" }
-  static var expectedProperResult1: String { "unknown" }
+  static var expectedTestResult1:   String { "11048" }
+  static var expectedProperResult1: String { "75416" }
   static var expectedTestResult2:   String { "unknown" }
   static var expectedProperResult2: String { "unknown" }
 
@@ -57,32 +59,32 @@ struct Day16: AdventDay {
       scores[startPos].s = 1000
       scores[startPos].w = 2000
 
-      go(.e, from: startPos)
-      go(.n, from: startPos)
-      go(.s, from: startPos)
-      go(.w, from: startPos)
+      var pathsToFollow: [(pos: Coord, dir: Direction)] = []
+      pathsToFollow.append((startPos, .e))
+      pathsToFollow.append((startPos, .n))
+      pathsToFollow.append((startPos, .s))
+      pathsToFollow.append((startPos, .w))
+
+      while pathsToFollow.isEmpty == false {
+        let path = pathsToFollow.removeLast()
+        let dir = path.dir
+        let pos = path.pos + dir
+        guard walls[pos] == false else { continue }
+        let score = scores[path.pos][dir] + 1
+
+        func go(_ dir: Direction, score: Int) {
+          guard score < scores[pos][dir] else { return }
+          scores[pos][dir] = score
+          pathsToFollow.append((pos, dir))
+        }
+
+        go(dir.opposite, score: score + 2000)
+        go(dir.cw,       score: score + 1000)
+        go(dir.ccw,      score: score + 1000)
+        go(dir,          score: score)
+      }
 
       return min(scores[endPos].n, scores[endPos].s, scores[endPos].e, scores[endPos].w)
-
-      func go(_ dir: Direction, from oldPos: Coord) {
-        let pos = oldPos + dir
-        guard walls[pos] == false else { return }
-        let score = scores[oldPos][dir] + 1
-//        print("\(oldPos) -> \(dir) -> \(pos), score \(score)")
-//        printMap(robotAt: pos)
-        let d1 = score +    0 < scores[pos][dir]
-        let d2 = score + 1000 < scores[pos][dir.cw]
-        let d3 = score + 1000 < scores[pos][dir.ccw]
-        let d4 = score + 2000 < scores[pos][dir.cw.cw]
-        if d1 { scores[pos][dir]       = score +    0 }
-        if d2 { scores[pos][dir.cw]    = score + 1000 }
-        if d3 { scores[pos][dir.ccw]   = score + 1000 }
-        if d4 { scores[pos][dir.cw.cw] = score + 2000 }
-        if d1 { go(dir,       from: pos) }
-        if d2 { go(dir.cw,    from: pos) }
-        if d3 { go(dir.ccw,   from: pos) }
-        if d4 { go(dir.cw.cw, from: pos) }
-      }
     }
 
     func printMap(robotAt pos: Coord) {
